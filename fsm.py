@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-import time
+
+class State(ABC):
+    pass
 
 class Event(ABC):
     @abstractmethod
@@ -8,85 +10,41 @@ class Event(ABC):
 
 class EventHandler(ABC):
     @abstractmethod
-    def handle_event(self):
-        pass
-
-class State(ABC):
-    @abstractmethod
-    def handle_event(self):
+    def handle_event(self) -> State:
         pass
 
 class StateMachine(ABC):
     def __init__(self):
         self.current_state = None
 
-    def set_initial_state(self, state):
+    def set_initial_state(self, state: State):
         self.current_state = state
 
     @abstractmethod
     def run(self):
         pass
 
-class StateA(State):
-    def handle_event(self):
-        print("STATE_A")
+def test_state_machine(state_machine_cls, fsm_config):
+    state_machine = state_machine_cls(fsm_config)
 
-class StateB(State):
-    def handle_event(self):
-        print("STATE_B")
+    # Count and print total number of defined states
+    states_count = len({entry['fsmState'].__class__.__name__ for entry in fsm_config})
+    print(f"Total number of defined states: {states_count}")
 
-class EventInitAB(Event):
-    def trigger(self):
-        print("Initializing State Machine...")
-        return StateA()
+    # Count and print total number of defined events
+    events_count = len({entry['fsmEvent'] for entry in fsm_config})
+    print(f"Total number of defined events: {events_count}")
 
-class EventTimeoutA(Event):
-    def trigger(self):
-        print("Timeout A")
-        return StateB()
+    # Print names of states and events if available
+    print("\nNames of states and events:")
+    for entry in fsm_config:
+        state = entry['fsmState']
+        event = entry['fsmEvent']
+        handler = entry['fsmHandler']
+        state_name = getattr(state, 'name', None) or type(state).__name__
+        event_name = getattr(event, 'name', None) or event
+        handler_name = getattr(handler, 'name', None) or type(handler).__name__
+        print(f"State: {state_name}, Event: {event_name}, Handler: {handler_name}")
 
-class EventTimeoutB(Event):
-    def trigger(self):
-        print("Timeout B")
-        return StateA()
-
-class InitHandlerAB(EventHandler):
-    def handle_event(self):
-        print("State Machine Init...")
-        return StateA()
-
-class AtoBHandler(EventHandler):
-    def handle_event(self):
-        print("Transitioning from A to B")
-        return StateB()
-
-class BtoAHandler(EventHandler):
-    def handle_event(self):
-        print("Transitioning from B to A")
-        return StateA()
-
-class StateMachineAB(StateMachine):
-    def run(self):
-        events = [
-            EventInitAB(),
-            EventTimeoutA(),
-            EventTimeoutB()
-        ]
-        handlers = {
-            EventInitAB: InitHandlerAB(),
-            EventTimeoutA: AtoBHandler(),
-            EventTimeoutB: BtoAHandler()
-        }
-        self.set_initial_state(handlers[EventInitAB].handle_event())
-        while True:
-            for event in events:
-                time.sleep(1)  # Simulate delay between events
-                next_state = handlers[type(event)].handle_event()
-                self.current_state = next_state
-
-def test_state_machine():
-    state_machine = StateMachineAB()
+    # Run the state machine
     state_machine.run()
-
-if __name__ == "__main__":
-    test_state_machine()
