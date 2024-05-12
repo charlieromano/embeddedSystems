@@ -29,6 +29,7 @@ dt2[y_name]=dt2[y_name].str.replace('[$B]', '', regex=True).astype(float)
 
 plt.plot(dt[x_name],dt[y_name])
 plt.plot(dt2[x_name],dt2[y_name])
+plt.legend(['y1','y2'])
 plt.show()
 
 
@@ -52,6 +53,7 @@ plt.scatter(dt[x_name],dt[y_name])
 plt.scatter(dt2[x_name],dt2[y_name])
 plt.plot(x_line, y1_line, '--',)
 plt.plot(x_line2, y2_line, '--',)
+plt.legend(['y1','y2','y1_hat','y2_hat'])
 plt.show()
 
 # Series - trends
@@ -69,9 +71,11 @@ y2_flat_mean = np.mean(y2_flat)
 plt.subplot(1,2,1)
 plt.plot(x_line, y1_flat, color=colors[2])
 plt.axhline(y1_flat_mean, color=colors[2], linestyle='--')
+plt.legend(['y1-y1_hat','mean'])
 plt.subplot(1,2,2)
 plt.plot(x_line2, y2_flat, color=colors[5])
 plt.axhline(y2_flat_mean, color=colors[5], linestyle='--')
+plt.legend(['y2-y2_hat','mean'])
 plt.show()
 
 # Tests
@@ -80,9 +84,13 @@ from statsmodels.tsa.stattools import kpss
 
 adfuller(y1)
 kpss(y1)
-
 adfuller(y1_flat)
 kpss(y1_flat)
+
+adfuller(y2)
+kpss(y2)
+adfuller(y2_flat)
+kpss(y2_flat)
 
 # Autocorrelations
 
@@ -96,13 +104,20 @@ y2=dt2[y_name].values
 x=dt2[x_name].values
 
 fig, ax = plt.subplots(2,2)
-
+fig.suptitle('Autocorrelation for y1, y2')
 tsa.plot_acf(y1, lags=_lags, ax=ax[0,0])
 tsa.plot_pacf(y1, lags=_lags, ax=ax[0,1])
-
 tsa.plot_acf(y2, lags=_lags, ax=ax[1,0])
 tsa.plot_pacf(y2, lags=_lags, ax=ax[1,1])
 
+plt.show()
+
+fig, ax = plt.subplots(2,2)
+fig.suptitle('Autocorrelation for y1_flat, y2_flat')
+tsa.plot_acf(y1_flat, lags=_lags, ax=ax[0,0])
+tsa.plot_pacf(y1_flat, lags=_lags, ax=ax[0,1])
+tsa.plot_acf(y2_flat, lags=_lags, ax=ax[1,0])
+tsa.plot_pacf(y2_flat, lags=_lags, ax=ax[1,1])
 plt.show()
 
 # Cross-correlations
